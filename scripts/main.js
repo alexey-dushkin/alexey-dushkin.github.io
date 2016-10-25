@@ -1,7 +1,10 @@
 (function() {
+
 	'use strict';
-                	
-	var app = angular.module('mynews', ['ui.router']);
+
+	angular.module('infinite-scroll').value('THROTTLE_MILLISECONDS', 2000)             
+   	
+	var app = angular.module('mynews', ['ui.router','infinite-scroll']);
 	
 	app.config(function($stateProvider, $urlRouterProvider) {
 
@@ -19,6 +22,8 @@
     			$urlRouterProvider.otherwise('/');                           						
 			
 	}); 
+
+
 	
 	// Служба загрузки источников
 	app.factory('SourcesService', function($q) {
@@ -81,11 +86,15 @@
 
 	// NewsController
 	app.controller('NewsController', function ($scope,NewsService,SourcesService) {
-		
+	  		
 	  $scope.articles = [];
 
 	  // загрузка статей
 	  $scope.loadArticles = function(cnt)  { 
+		
+		 if ($('#news').attr('infinite-scroll-disabled') == 'true') return;
+		 $('#news').attr('infinite-scroll-disabled','true');			 
+	
 		 var publishers = [];
 	 	 var articleIds = [];
 
@@ -103,18 +112,21 @@
 		var promiseObj=NewsService.getNews(cnt,publishers,articleIds);
 	        promiseObj.then(function(articles) { 			
                       	$scope.articles = $scope.articles.concat(articles);							
+			$('#news').attr('infinite-scroll-disabled','false');	
 		});		 
 
 	   };	
 
            
 	   // событие прокрутки    	   
+	   /*
       	   $(window).scroll(function() {
         	if($(window).scrollTop()+$(window).height()==($(document).height())){ 		 
 		// если дошли до конца страницы - подгружаем новые статьи
 		$scope.loadArticles(30);   		 
 	     } 
       	   });
+	   */
 	   
 	   // Начальная загрузка статей
 	   $scope.loadArticles(60); 	
